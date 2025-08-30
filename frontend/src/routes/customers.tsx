@@ -4,6 +4,8 @@ import { CustomerManagement } from '@/components/CustomerManagement'
 import { Sidebar } from '@/components/SideBar'
 import { useAuthStore } from '@/lib/store'
 import { useNavigate } from '@tanstack/react-router'
+import { Button } from '@/components/ui/button'
+import { Menu } from 'lucide-react'
 
 const Customers = () => {
   const navigate = useNavigate()
@@ -36,14 +38,14 @@ const Customers = () => {
         <header className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button
-                className="lg:hidden p-2 rounded-md hover:bg-gray-100"
+              <Button
+                variant="ghost"
+                size="sm"
+                className="lg:hidden"
                 onClick={toggleSidebar}
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
+                <Menu className="w-5 h-5" />
+              </Button>
               <h1 className="text-2xl font-semibold">Customer Management</h1>
             </div>
           </div>

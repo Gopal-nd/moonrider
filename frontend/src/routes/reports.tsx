@@ -15,7 +15,8 @@ import {
   Package, 
   Download,
   Calendar,
-  BarChart3
+  BarChart3,
+  Menu
 } from 'lucide-react'
 import { dashboardApi } from '@/lib/dashboardApi'
 import toast from 'react-hot-toast'
@@ -105,14 +106,14 @@ const Reports = () => {
         <header className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button
-                className="lg:hidden p-2 rounded-md hover:bg-gray-100"
+              <Button
+                variant="ghost"
+                size="sm"
+                className="lg:hidden"
                 onClick={toggleSidebar}
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
+                <Menu className="w-5 h-5" />
+              </Button>
               <h1 className="text-2xl font-semibold">Reports & Analytics</h1>
             </div>
           </div>

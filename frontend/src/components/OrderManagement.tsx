@@ -11,9 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
   Plus, 
-  Edit, 
   Trash2, 
-  Search, 
   Package,
   Truck,
   CheckCircle,
@@ -54,16 +52,7 @@ interface Order {
   };
 }
 
-interface OrderFormData {
-  customerId: string;
-  orderItems: Array<{
-    productId: string;
-    quantity: number;
-    price: number;
-  }>;
-  shippingAddress: string;
-  paymentMethod: string;
-}
+
 
 const getStatusIcon = (status: string) => {
   switch (status) {
@@ -104,6 +93,12 @@ export const OrderManagement: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [orderFormData, setOrderFormData] = useState({
+    customerId: '',
+    orderItems: [{ productId: '', quantity: 1, price: 0 }],
+    shippingAddress: '',
+    paymentMethod: 'credit_card'
+  });
   const queryClient = useQueryClient();
 
   const { data: orderData, isLoading } = useQuery({
@@ -114,6 +109,16 @@ export const OrderManagement: React.FC = () => {
   const { data: analytics } = useQuery({
     queryKey: ['order-analytics'],
     queryFn: dashboardApi.getOrderAnalytics,
+  });
+
+  const { data: customers = [] } = useQuery({
+    queryKey: ['customers'],
+    queryFn: () => dashboardApi.getCustomers(),
+  });
+
+  const { data: products = [] } = useQuery({
+    queryKey: ['products'],
+    queryFn: dashboardApi.getProducts,
   });
 
   const updateStatusMutation = useMutation({
@@ -141,6 +146,25 @@ export const OrderManagement: React.FC = () => {
     },
   });
 
+  const createOrderMutation = useMutation({
+    mutationFn: dashboardApi.createOrder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['order-analytics'] });
+      setShowForm(false);
+      setOrderFormData({
+        customerId: '',
+        orderItems: [{ productId: '', quantity: 1, price: 0 }],
+        shippingAddress: '',
+        paymentMethod: 'credit_card'
+      });
+      toast.success('Order created successfully');
+    },
+    onError: () => {
+      toast.error('Failed to create order');
+    },
+  });
+
   const handleStatusUpdate = (orderId: string, newStatus: string) => {
     const updateData: any = { status: newStatus };
     if (newStatus === 'delivered') {
@@ -162,6 +186,209 @@ export const OrderManagement: React.FC = () => {
   const closeDetails = () => {
     setSelectedOrder(null);
   };
+
+  const handleCreateOrder = () => {
+    if (!orderFormData.customerId || orderFormData.orderItems.length === 0) {
+      toast.error('Please select a customer and add at least one product');
+      return;
+    }
+
+    // Validate order items
+    const validItems = orderFormData.orderItems.filter(item => 
+      item.productId && item.quantity > 0 && item.price > 0
+    );
+
+    if (validItems.length === 0) {
+      toast.error('Please add valid products to the order');
+      return;
+    }
+
+    createOrderMutation.mutate({
+      ...orderFormData,
+      orderItems: validItems
+    });
+  };
+
+  const addOrderItem = () => {
+    setOrderFormData(prev => ({
+      ...prev,
+      orderItems: [...prev.orderItems, { productId: '', quantity: 1, price: 0 }]
+    }));
+  };
+
+  const removeOrderItem = (index: number) => {
+    setOrderFormData(prev => ({
+      ...prev,
+      orderItems: prev.orderItems.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateOrderItem = (index: number, field: string, value: any) => {
+    setOrderFormData(prev => ({
+      ...prev,
+      orderItems: prev.orderItems.map((item, i) => 
+        i === index ? { ...item, [field]: value } : item
+      )
+    }));
+  };
+
+  const handleProductChange = (index: number, productId: string) => {
+    const product = products.find((p: any) => p.id === productId);
+    if (product) {
+      updateOrderItem(index, 'productId', productId);
+      updateOrderItem(index, 'price', product.price || 0);
+    }
+  };
+
+  if (showForm) {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader className="flex items-center justify-between">
+          <CardTitle>Create New Order</CardTitle>
+          <Button variant="outline" onClick={() => setShowForm(false)}>
+            Cancel
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Customer Selection */}
+          <div>
+            <Label htmlFor="customer">Customer</Label>
+            <select
+              id="customer"
+              value={orderFormData.customerId}
+              onChange={(e) => setOrderFormData(prev => ({ ...prev, customerId: e.target.value }))}
+              className="w-full p-2 border rounded-md mt-1"
+            >
+              <option value="">Select Customer</option>
+              {customers?.customers?.map((customer: any) => (
+                <option key={customer.id} value={customer.id}>
+                  {customer.name} - {customer.email}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Order Items */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label>Order Items</Label>
+              <Button size="sm" onClick={addOrderItem}>
+                Add Item
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {orderFormData.orderItems.map((item, index) => (
+                <div key={index} className="flex gap-3 p-3 border rounded-lg">
+                  <div className="flex-1">
+                    <Label>Product</Label>
+                    <select
+                      value={item.productId}
+                      onChange={(e) => handleProductChange(index, e.target.value)}
+                      className="w-full p-2 border rounded-md mt-1"
+                    >
+                      <option value="">Select Product</option>
+                      {products?.map((product: any) => (
+                                              <option key={product.id} value={product.id}>
+                        {product.name} - ${product.price}
+                      </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <Label>Quantity</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={item.quantity}
+                      onChange={(e) => updateOrderItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                      className="w-20 mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Price</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={item.price}
+                      onChange={(e) => updateOrderItem(index, 'price', parseFloat(e.target.value) || 0)}
+                      className="w-24 mt-1"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => removeOrderItem(index)}
+                      disabled={orderFormData.orderItems.length === 1}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Shipping & Payment */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="shippingAddress">Shipping Address</Label>
+              <Input
+                id="shippingAddress"
+                value={orderFormData.shippingAddress}
+                onChange={(e) => setOrderFormData(prev => ({ ...prev, shippingAddress: e.target.value }))}
+                placeholder="Enter shipping address"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="paymentMethod">Payment Method</Label>
+              <select
+                id="paymentMethod"
+                value={orderFormData.paymentMethod}
+                onChange={(e) => setOrderFormData(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                className="w-full p-2 border rounded-md mt-1"
+              >
+                <option value="credit_card">Credit Card</option>
+                <option value="debit_card">Debit Card</option>
+                <option value="bank_transfer">Bank Transfer</option>
+                <option value="cash">Cash</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Total Calculation */}
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="font-semibold">Total Amount:</span>
+              <span className="text-xl font-bold">
+                ${orderFormData.orderItems.reduce((sum, item) => sum + (item.quantity * item.price), 0).toFixed(2)}
+              </span>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleCreateOrder}
+              disabled={createOrderMutation.isPending}
+              className="flex-1"
+            >
+              {createOrderMutation.isPending ? 'Creating Order...' : 'Create Order'}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowForm(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (selectedOrder) {
     return (

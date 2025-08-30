@@ -9,36 +9,94 @@ export const getDashboardMetrics = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const metrics = await prisma.metric.findMany({
-      where: { userId },
-      orderBy: { date: 'desc' },
-      take: 4
-    });
+    // Get actual data from database to calculate metrics
+    const [orders, customers, products, activities] = await Promise.all([
+      prisma.order.findMany({
+        where: { userId },
+        select: { totalAmount: true, orderDate: true }
+      }),
+      prisma.customer.findMany({
+        where: { userId },
+        select: { totalSpent: true, createdAt: true }
+      }),
+      prisma.product.findMany({
+        where: { userId },
+        select: { price: true, createdAt: true }
+      }),
+      prisma.activity.findMany({
+        where: { userId },
+        select: { guest: true, userCount: true, date: true }
+      })
+    ]);
 
-    // Group metrics by type and get the latest value for each
+    // Calculate current values
+    const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+    const totalOrders = orders.length;
+    const totalCustomers = customers.length;
+    const totalProducts = products.length;
+
+    // Calculate previous period values (last 7 days vs previous 7 days)
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+    const currentPeriodOrders = orders.filter(order => 
+      new Date(order.orderDate) >= sevenDaysAgo
+    );
+    const previousPeriodOrders = orders.filter(order => 
+      new Date(order.orderDate) >= fourteenDaysAgo && new Date(order.orderDate) < sevenDaysAgo
+    );
+
+    const currentPeriodRevenue = currentPeriodOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+    const previousPeriodRevenue = previousPeriodOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+
+    // Calculate change percentages
+    const revenueChange = previousPeriodRevenue > 0 
+      ? ((currentPeriodRevenue - previousPeriodRevenue) / previousPeriodRevenue) * 100 
+      : 0;
+
+    const ordersChange = previousPeriodOrders.length > 0 && previousPeriodOrders.length > 0
+      ? ((currentPeriodOrders.length - previousPeriodOrders.length) / previousPeriodOrders.length) * 100
+      : 0;
+
+    // For likes and users, we'll use activity data
+    const currentPeriodActivity = activities.filter(activity => 
+      new Date(activity.date) >= sevenDaysAgo
+    );
+    const previousPeriodActivity = activities.filter(activity => 
+      new Date(activity.date) >= fourteenDaysAgo && new Date(activity.date) < sevenDaysAgo
+    );
+
+    const currentLikes = currentPeriodActivity.reduce((sum, activity) => sum + activity.guest, 0);
+    const previousLikes = previousPeriodActivity.reduce((sum, activity) => sum + activity.guest, 0);
+    const likesChange = previousLikes > 0 
+      ? ((currentLikes - previousLikes) / previousLikes) * 100 
+      : 0;
+
+    const currentUsers = currentPeriodActivity.reduce((sum, activity) => sum + activity.userCount, 0);
+    const previousUsers = previousPeriodActivity.reduce((sum, activity) => sum + activity.userCount, 0);
+    const usersChange = previousUsers > 0 
+      ? ((currentUsers - previousUsers) / previousUsers) * 100 
+      : 0;
+
     const latestMetrics = {
-      totalRevenues: { value: 0, change: 0 },
-      totalTransactions: { value: 0, change: 0 },
-      totalLikes: { value: 0, change: 0 },
-      totalUsers: { value: 0, change: 0 }
-    };
-
-    metrics.forEach(metric => {
-      switch (metric.type) {
-        case 'revenue':
-          latestMetrics.totalRevenues = { value: metric.value, change: metric.change };
-          break;
-        case 'transactions':
-          latestMetrics.totalTransactions = { value: metric.value, change: metric.change };
-          break;
-        case 'likes':
-          latestMetrics.totalLikes = { value: metric.value, change: metric.change };
-          break;
-        case 'users':
-          latestMetrics.totalUsers = { value: metric.value, change: metric.change };
-          break;
+      totalRevenues: { 
+        value: Math.round(totalRevenue * 100) / 100, 
+        change: Math.round(revenueChange * 100) / 100 
+      },
+      totalTransactions: { 
+        value: totalOrders, 
+        change: Math.round(ordersChange * 100) / 100 
+      },
+      totalLikes: { 
+        value: currentLikes, 
+        change: Math.round(likesChange * 100) / 100 
+      },
+      totalUsers: { 
+        value: currentUsers, 
+        change: Math.round(usersChange * 100) / 100 
       }
-    });
+    };
 
     res.json(latestMetrics);
   } catch (error) {
@@ -240,7 +298,7 @@ export const createProduct = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const { name, percentage, color } = req.body;
+    const { name, percentage, color, price, category, stock, description, imageUrl } = req.body;
 
     if (!name || percentage === undefined || !color) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -251,6 +309,11 @@ export const createProduct = async (req: Request, res: Response) => {
         name,
         percentage,
         color,
+        price: price || 0,
+        category: category || '',
+        stock: stock || 0,
+        description: description || '',
+        imageUrl: imageUrl || '',
         userId
       }
     });
@@ -271,7 +334,7 @@ export const updateProduct = async (req: Request, res: Response) => {
     }
 
     const { id } = req.params;
-    const { name, percentage, color } = req.body;
+    const { name, percentage, color, price, category, stock, description, imageUrl } = req.body;
 
     const product = await prisma.product.findFirst({
       where: { id, userId }
@@ -283,7 +346,16 @@ export const updateProduct = async (req: Request, res: Response) => {
 
     const updatedProduct = await prisma.product.update({
       where: { id },
-      data: { name, percentage, color }
+      data: { 
+        name, 
+        percentage, 
+        color, 
+        price: price !== undefined ? price : product.price,
+        category: category !== undefined ? category : product.category,
+        stock: stock !== undefined ? stock : product.stock,
+        description: description !== undefined ? description : product.description,
+        imageUrl: imageUrl !== undefined ? imageUrl : product.imageUrl
+      }
     });
 
     res.json(updatedProduct);

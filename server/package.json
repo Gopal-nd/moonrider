@@ -10,7 +10,8 @@
     "start": "bun run index.ts",
     "dev": "bun run --watch index.ts",
     "db": "prisma generate && prisma db push",
-    "reset": "prisma generate && prisma db push --force-reset"
+    "reset": "prisma generate && prisma db push --force-reset",
+    "seed": "bun run seed.ts"
   },
   "peerDependencies": {
     "typescript": "^5"
