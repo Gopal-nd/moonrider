@@ -46,13 +46,31 @@ export const dashboardApi = {
   },
 
   // Create product
-  createProduct: async (data: { name: string; percentage: number; color: string }) => {
+  createProduct: async (data: { 
+    name: string; 
+    percentage: number; 
+    color: string;
+    price?: number;
+    stock?: number;
+    category?: string;
+    description?: string;
+    imageUrl?: string;
+  }) => {
     const response = await axiosInstance.post('/api/dashboard/products', data);
     return response.data;
   },
 
   // Update product
-  updateProduct: async (id: string, data: { name: string; percentage: number; color: string }) => {
+  updateProduct: async (id: string, data: { 
+    name: string; 
+    percentage: number; 
+    color: string;
+    price?: number;
+    stock?: number;
+    category?: string;
+    description?: string;
+    imageUrl?: string;
+  }) => {
     const response = await axiosInstance.put(`/api/dashboard/products/${id}`, data);
     return response.data;
   },

@@ -23,6 +23,11 @@ interface Product {
   name: string;
   percentage: number;
   color: string;
+  price?: number;
+  stock?: number;
+  category?: string;
+  description?: string;
+  imageUrl?: string;
 }
 
 // Top Products Component

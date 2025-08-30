@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import prisma from "../lib/prisma";
 
 // Get all orders with pagination and filters
@@ -128,6 +128,8 @@ export const createOrder = async (req: Request, res: Response) => {
 
     // Calculate total amount and verify products
     let totalAmount = 0;
+    const productDetails: Array<{ productId: string; quantity: number; productPrice: number }> = [];
+    
     for (const item of orderItems) {
       const product = await prisma.product.findFirst({
         where: { id: item.productId, userId }
@@ -143,12 +145,19 @@ export const createOrder = async (req: Request, res: Response) => {
         });
       }
 
-      totalAmount += product.price! * item.quantity;
+      if (!product.price) {
+        return res.status(400).json({ 
+          error: `Product ${product.name} has no price set` 
+        });
+      }
+
+      totalAmount += product.price * item.quantity;
+      productDetails.push({ ...item, productPrice: product.price });
     }
 
     // Generate order number
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
+    
     // Create order with transaction
     const order = await prisma.$transaction(async (prisma) => {
       const newOrder = await prisma.order.create({
@@ -163,12 +172,12 @@ export const createOrder = async (req: Request, res: Response) => {
       });
 
       // Create order items
-      const orderItemData = orderItems.map((item: any) => ({
+      const orderItemData = productDetails.map((item) => ({
         orderId: newOrder.id,
         productId: item.productId,
         quantity: item.quantity,
-        price: item.price,
-        total: item.price * item.quantity
+        price: item.productPrice,
+        total: item.productPrice * item.quantity
       }));
 
       await prisma.orderItem.createMany({

@@ -11,6 +11,11 @@ interface Product {
   name: string;
   percentage: number;
   color: string;
+  price?: number;
+  stock?: number;
+  category?: string;
+  description?: string;
+  imageUrl?: string;
 }
 
 interface ProductFormProps {
@@ -29,7 +34,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const [formData, setFormData] = useState<Product>({
     name: '',
     percentage: 0,
-    color: '#10B981'
+    color: '#10B981',
+    price: 0,
+    stock: 0,
+    category: '',
+    description: '',
+    imageUrl: ''
   });
 
   useEffect(() => {
@@ -46,13 +56,23 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       return;
     }
 
+    if (formData.price !== undefined && formData.price < 0) {
+      toast.error('Price cannot be negative.');
+      return;
+    }
+
+    if (formData.stock !== undefined && formData.stock < 0) {
+      toast.error('Stock cannot be negative.');
+      return;
+    }
+
     onSave(formData);
   };
 
   const handleChange = (field: keyof Product, value: string | number) => {
     setFormData(prev => ({
       ...prev,
-      [field]: field === 'percentage' ? Number(value) : value
+      [field]: field === 'percentage' || field === 'price' || field === 'stock' ? Number(value) : value
     }));
   };
 
@@ -112,6 +132,66 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 className="flex-1"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="price">Price ($)</Label>
+              <Input
+                id="price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.price || ''}
+                onChange={(e) => handleChange('price', e.target.value)}
+                placeholder="0.00"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="stock">Stock Quantity</Label>
+              <Input
+                id="stock"
+                type="number"
+                min="0"
+                value={formData.stock || ''}
+                onChange={(e) => handleChange('stock', e.target.value)}
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Input
+              id="category"
+              type="text"
+              value={formData.category || ''}
+              onChange={(e) => handleChange('category', e.target.value)}
+              placeholder="e.g., Electronics, Clothing"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Input
+              id="description"
+              type="text"
+              value={formData.description || ''}
+              onChange={(e) => handleChange('description', e.target.value)}
+              placeholder="Product description"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="imageUrl">Image URL</Label>
+            <Input
+              id="imageUrl"
+              type="url"
+              value={formData.imageUrl || ''}
+              onChange={(e) => handleChange('imageUrl', e.target.value)}
+              placeholder="https://example.com/image.jpg"
+            />
           </div>
           
           <div className="flex space-x-2">
