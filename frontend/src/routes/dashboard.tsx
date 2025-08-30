@@ -29,50 +29,8 @@ import { ActivitiesChart } from '@/components/ActivitiesCard'
 import { TopProducts } from '@/components/TopProducts'
 import { useAuthStore } from '@/lib/store'
 import { axiosInstance } from '@/lib/axios'
+import { dashboardApi } from '@/lib/dashboardApi'
 import toast from 'react-hot-toast'
-
-// API configuration
-const API_BASE_URL = 'https://api.example.com'
-
-// API functions using fetch
-const fetchDashboardMetrics = async () => {
-  const response = await fetch(`${API_BASE_URL}/dashboard/metrics`)
-  if (!response.ok) throw new Error('Failed to fetch metrics')
-  return response.json()
-}
-
-const fetchActivityData = async () => {
-  const response = await fetch(`${API_BASE_URL}/dashboard/activities`)
-  if (!response.ok) throw new Error('Failed to fetch activities')
-  return response.json()
-}
-
-const fetchTopProducts = async () => {
-  const response = await fetch(`${API_BASE_URL}/dashboard/top-products`)
-  if (!response.ok) throw new Error('Failed to fetch top products')
-  return response.json()
-}
-
-// Mock data for development
-const mockMetrics = {
-  totalRevenues: { value: 2129430, change: 2.5 },
-  totalTransactions: { value: 1520, change: 1.7 },
-  totalLikes: { value: 9721, change: 1.4 },
-  totalUsers: { value: 9721, change: 4.2 },
-}
-
-const mockActivities = [
-  { week: 'Week 1', guest: 400, user: 500 },
-  { week: 'Week 2', guest: 450, user: 350 },
-  { week: 'Week 3', guest: 300, user: 200 },
-  { week: 'Week 4', guest: 350, user: 400 },
-]
-
-const mockTopProducts = [
-  { name: 'Basic Tees', percentage: 55, color: '#10B981' },
-  { name: 'Custom Short Pants', percentage: 31, color: '#F59E0B' },
-  { name: 'Super Hoodies', percentage: 14, color: '#EF4444' },
-]
 
 // Main Dashboard Component
 const Dashboard = () => {
@@ -83,23 +41,16 @@ const Dashboard = () => {
   }
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
 
-  // TanStack Query hooks
+  // TanStack Query hooks for dynamic data
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ['dashboard-metrics'],
-    queryFn: fetchDashboardMetrics,
-    initialData: mockMetrics, // Using mock data for demo
-  })
-
-  const { data: activities, isLoading: activitiesLoading } = useQuery({
-    queryKey: ['dashboard-activities'],
-    queryFn: fetchActivityData,
-    initialData: mockActivities, // Using mock data for demo
-  })
-
-  const { data: topProducts, isLoading: productsLoading } = useQuery({
-    queryKey: ['top-products'],
-    queryFn: fetchTopProducts,
-    initialData: mockTopProducts, // Using mock data for demo
+    queryFn: dashboardApi.getMetrics,
+    initialData: {
+      totalRevenues: { value: 0, change: 0 },
+      totalTransactions: { value: 0, change: 0 },
+      totalLikes: { value: 0, change: 0 },
+      totalUsers: { value: 0, change: 0 }
+    }
   })
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen)
@@ -214,13 +165,13 @@ const Dashboard = () => {
 
             {/* Charts and Activities */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <ActivitiesChart data={activities} />
+              <ActivitiesChart />
               <AddProfile />
             </div>
 
             {/* Bottom Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <TopProducts products={topProducts} />
+              <TopProducts />
               <div></div>
             </div>
           </div>

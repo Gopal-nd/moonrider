@@ -23,7 +23,17 @@ model User {
   password  String? // optional if using email+OTP
   createdAt DateTime @default(now())
   avatar    String?
+  role      String   @default("user") // admin, user, manager
+  isActive  Boolean  @default(true)
   notes     Note[]
+  metrics   Metric[]
+  activities Activity[]
+  products  Product[]
+  orders    Order[]
+  customers Customer[]
+  reports   Report[]
+  notifications Notification[]
+  settings  UserSettings?
 }
 
 model Note {
@@ -33,4 +43,119 @@ model Note {
   createdAt DateTime @default(now())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model Metric {
+  id        String   @id @default(uuid())
+  type      String   // 'revenue', 'transactions', 'likes', 'users', 'orders', 'customers'
+  value     Float
+  change    Float
+  date      DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  week      String
+  guest     Int
+  userCount Int
+  date      DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  percentage  Float
+  color       String
+  price       Float?
+  category    String?
+  stock       Int?
+  description String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  orderItems  OrderItem[]
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  address   String?
+  city      String?
+  country   String?
+  status    String   @default("active") // active, inactive, vip
+  totalSpent Float   @default(0)
+  lastOrder DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  orders    Order[]
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  orderNumber String      @unique
+  customerId  String
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  status      String      @default("pending") // pending, processing, shipped, delivered, cancelled
+  totalAmount Float
+  shippingAddress String?
+  paymentMethod String?
+  orderDate   DateTime    @default(now())
+  deliveryDate DateTime?
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  orderItems  OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+  total     Float
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  title       String
+  type        String   // sales, inventory, customer, performance
+  content     String   // JSON string or text content
+  filters     String?  // JSON string for report filters
+  generatedAt DateTime @default(now())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  type      String   @default("info") // info, warning, error, success
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model UserSettings {
+  id                String  @id @default(uuid())
+  userId            String  @unique
+  user              User    @relation(fields: [userId], references: [id])
+  theme             String  @default("light") // light, dark
+  language          String  @default("en")
+  emailNotifications Boolean @default(true)
+  pushNotifications Boolean @default(true)
+  dashboardLayout   String? // JSON string for custom layout
 }
