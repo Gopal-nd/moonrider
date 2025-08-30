@@ -1,15 +1,31 @@
 import { axiosInstance } from '@/lib/axios'
 import { useAuthStore } from '@/lib/store'
 import { Link, useNavigate } from '@tanstack/react-router'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from './ui/button'
 import toast from 'react-hot-toast'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
 
-export default function Header() {
+  Menu,
+} from 'lucide-react'
+
+export default function Header({ toggleSidebar,title='' }: { toggleSidebar: () => void,title: string }) {
   const { user, clearUser } = useAuthStore()
   const naviagate = useNavigate()
+  if(!user?.email){
+    naviagate({ to: '/sign-in' })
+  }
   const handleLogout = async () => {
     try {
-      const res = await axiosInstance.post('/api/auth/logout')
+      await axiosInstance.post('/api/auth/logout')
       clearUser()
       toast('logout successful')
       naviagate({ to: '/' })
@@ -18,24 +34,37 @@ export default function Header() {
     }
   }
   return (
-    <header className="p-2 flex gap-2 bg-white text-black justify-between items-center shadow">
-      <nav className="flex flex-row">
-        <div className="px-2 font-bold">
-          <Link to="/">Home</Link>
-        </div>
-      </nav>
+        <header className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="lg:hidden"
+                onClick={toggleSidebar}
+              >
+                <Menu className="w-5 h-5" />
+              </Button>
+              <h1 className="text-2xl font-semibold">{title}</h1>
+            </div>
+        {user?.email ? (
+               <div className="flex items-center gap-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Avatar>
+                    <AvatarImage src="/api/placeholder/32/32" />
+                    <AvatarFallback>{user?.name[0]}</AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>{user?.name}</DropdownMenuItem>
+                  <Button onClick={handleLogout}>Logout</Button>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
-      <div className="flex items-center gap-2">
-        {user ? (
-          <>
-            <span className="font-medium">Hi, {user.name}</span>
-            <button
-              onClick={handleLogout}
-              className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600"
-            >
-              Logout
-            </button>
-          </>
         ) : (
           <Link
             to="/sign-in"
@@ -44,7 +73,7 @@ export default function Header() {
             Login
           </Link>
         )}
-      </div>
-    </header>
+       </div>
+        </header>
   )
 }

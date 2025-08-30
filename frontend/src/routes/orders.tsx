@@ -4,8 +4,7 @@ import { OrderManagement } from '@/components/OrderManagement'
 import { Sidebar } from '@/components/SideBar'
 import { useAuthStore } from '@/lib/store'
 import { useNavigate } from '@tanstack/react-router'
-import { Button } from '@/components/ui/button'
-import { Menu } from 'lucide-react'
+import Header from '@/components/Header'
 
 const Orders = () => {
   const navigate = useNavigate()
@@ -35,21 +34,8 @@ const Orders = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="lg:hidden"
-                onClick={toggleSidebar}
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
-              <h1 className="text-2xl font-semibold">Order Management</h1>
-            </div>
-          </div>
-        </header>
+        <Header toggleSidebar={toggleSidebar} title="Order Management" />
+
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto p-6">

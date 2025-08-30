@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Card, 
@@ -122,7 +122,7 @@ export const TopProducts = () => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>Top products</span>
+          <p></p>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">May - June 2021</span>
             <Button size="sm" onClick={() => setShowForm(true)}>
@@ -155,7 +155,7 @@ export const TopProducts = () => {
                     paddingAngle={5}
                     dataKey="value"
                   >
-                    {pieData.map((entry, index) => (
+                    {pieData.map((entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -164,7 +164,7 @@ export const TopProducts = () => {
             </div>
             
             <div className="space-y-3">
-              {products.map((product) => (
+              {products.map((product: Product) => (
                 <div key={product.id} className="flex items-center justify-between gap-3 min-w-[200px]">
                   <div className="flex items-center gap-3">
                     <div 

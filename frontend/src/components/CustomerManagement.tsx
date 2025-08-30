@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Card, 
@@ -14,7 +14,6 @@ import {
   Edit, 
   Trash2, 
   Search, 
-  Filter,
   Users,
   UserPlus,
   DollarSign,
@@ -266,7 +265,7 @@ export const CustomerManagement: React.FC = () => {
   if (showForm) {
     return (
       <CustomerForm
-        customer={editingCustomer || undefined}
+        customer={editingCustomer as any || undefined}
         onSave={handleSave}
         onCancel={handleCancel}
         mode={editingCustomer ? 'edit' : 'create'}
@@ -278,7 +277,7 @@ export const CustomerManagement: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Customer Management</h1>
+      <p></p>
         <Button onClick={() => setShowForm(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Add Customer

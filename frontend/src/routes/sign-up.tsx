@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { Loader, Sun } from 'lucide-react'
+import { Loader } from 'lucide-react'
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google'
 import axios from 'axios'
 import { useMutation } from '@tanstack/react-query'
@@ -96,17 +96,14 @@ const SignUp = () => {
         <div className="md:w-1/3 bg-white items-center justify-between w-full  rounded-3xl border-2 border-yellow-400 p-8 flex flex-col">
           {/* HD Logo */}
           <div className="flex md:items-start items-center mb-8">
-            <div className=" text-2xl rounded flex items-center justify-center mr-2 gap-1">
-              <Sun className="text-blue-500 fornt-bold" />
-              <span className="font-bold text-sm">HD</span>
-            </div>
+           
           </div>
 
           {/* Form Content */}
           <div className="mt-10 mx-auto my-auto items-center justify-between w-full h-full">
             <h2 className="text-3xl font-semibold mb-2">Sign up</h2>
             <p className="text-gray-500 mb-8">
-              Sign up to enjoy the feature of HD
+         
             </p>
 
             <div className="space-y-6">

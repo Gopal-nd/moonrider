@@ -13,30 +13,28 @@ import {
   User, 
   Settings, 
   Bell, 
-  Eye, 
-  EyeOff,
+
   Save,
   Edit,
   Palette,
   Globe,
-  Shield,
   Package,
   ShoppingCart,
   DollarSign,
-  Menu
 } from 'lucide-react'
 import { dashboardApi } from '@/lib/dashboardApi'
 import toast from 'react-hot-toast'
+import Header from '@/components/Header'
 
 const Profile = () => {
   const navigate = useNavigate()
-  const { user, updateUser } = useAuthStore()
+  const { user } = useAuthStore()
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
   const [isEditingProfile, setIsEditingProfile] = useState(false)
   const [isEditingSettings, setIsEditingSettings] = useState(false)
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
-    avatar: user?.avatar || ''
+
   })
   const [settingsData, setSettingsData] = useState({
     theme: 'light',
@@ -53,10 +51,7 @@ const Profile = () => {
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen)
 
-  const { data: userProfile } = useQuery({
-    queryKey: ['user-profile'],
-    queryFn: dashboardApi.getUserProfile,
-  });
+ 
 
   const { data: userSettings } = useQuery({
     queryKey: ['user-settings'],
@@ -70,8 +65,8 @@ const Profile = () => {
 
   const updateProfileMutation = useMutation({
     mutationFn: dashboardApi.updateUserProfile,
-    onSuccess: (data) => {
-      updateUser(data);
+    onSuccess: () => {
+
       setIsEditingProfile(false);
       toast.success('Profile updated successfully!');
     },
@@ -114,7 +109,6 @@ const Profile = () => {
   const handleProfileEdit = () => {
     setProfileData({
       name: user?.name || '',
-      avatar: user?.avatar || ''
     });
     setIsEditingProfile(true);
   };
@@ -147,21 +141,8 @@ const Profile = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="lg:hidden"
-                onClick={toggleSidebar}
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
-              <h1 className="text-2xl font-semibold">Profile & Settings</h1>
-            </div>
-          </div>
-        </header>
+        <Header toggleSidebar={toggleSidebar} title="Profile & Settings" />
+
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto p-6">
@@ -185,7 +166,7 @@ const Profile = () => {
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-20 w-20">
-                    <AvatarImage src={profileData.avatar || user?.avatar} />
+                    <AvatarImage src={ ''} />
                     <AvatarFallback className="text-2xl">{user?.name?.[0]}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
@@ -203,7 +184,7 @@ const Profile = () => {
                           <Label htmlFor="avatar">Avatar URL</Label>
                           <Input
                             id="avatar"
-                            value={profileData.avatar}
+                            value={''}
                             onChange={(e) => setProfileData(prev => ({ ...prev, avatar: e.target.value }))}
                             placeholder="Enter image URL"
                           />
@@ -222,9 +203,7 @@ const Profile = () => {
                       <div>
                         <h3 className="text-xl font-semibold">{user?.name}</h3>
                         <p className="text-muted-foreground">{user?.email}</p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Member since {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
-                        </p>
+                    
                       </div>
                     )}
                   </div>

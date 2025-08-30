@@ -2,8 +2,6 @@
 import { 
   BarChart, 
   Settings,
-  Calendar,
-  Tag,
   HelpCircle,
   MessageCircle,
   Users,
@@ -11,7 +9,6 @@ import {
   FileText,
   Bell,
   User,
-  TrendingUp,
   Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

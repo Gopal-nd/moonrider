@@ -11,11 +11,9 @@ export default defineConfig({
     TanStackRouterVite({ autoCodeSplitting: true }),
     viteReact(),
     tailwindcss(),
+    
   ],
-  test: {
-    globals: true,
-    environment: 'jsdom',
-  },
+
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),

@@ -6,7 +6,6 @@ import { useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { 
   Settings, 
@@ -20,10 +19,11 @@ import {
   AlertTriangle,
   CheckCircle,
   Edit,
-  Menu
+
 } from 'lucide-react'
 import { dashboardApi } from '@/lib/dashboardApi'
 import toast from 'react-hot-toast'
+import Header from '@/components/Header'
 
 const SettingsPage = () => {
   const navigate = useNavigate()
@@ -114,21 +114,8 @@ const SettingsPage = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="lg:hidden"
-                onClick={toggleSidebar}
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
-              <h1 className="text-2xl font-semibold">System Settings</h1>
-            </div>
-          </div>
-        </header>
+        <Header toggleSidebar={toggleSidebar} title="System Settings" />
+
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto p-6">

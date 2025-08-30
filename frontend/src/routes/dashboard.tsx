@@ -3,46 +3,33 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
   DollarSign,
   CreditCard,
   ThumbsUp,
   Users,
-  Search,
-  Bell,
-  Menu,
+
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+
 import { Sidebar } from '@/components/SideBar'
 import { MetricCard } from '@/components/MetricCard'
 import { AddProfile } from '@/components/AddProfile'
 import { ActivitiesChart } from '@/components/ActivitiesCard'
 import { TopProducts } from '@/components/TopProducts'
 import { useAuthStore } from '@/lib/store'
-import { axiosInstance } from '@/lib/axios'
 import { dashboardApi } from '@/lib/dashboardApi'
-import toast from 'react-hot-toast'
+import Header from '@/components/Header'
 
 // Main Dashboard Component
 const Dashboard = () => {
   const naviagate = useNavigate()
-  const { user, clearUser } = useAuthStore()
+  const { user } = useAuthStore()
   if (!user?.email) {
     naviagate({ to: '/sign-in' })
   }
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
 
   // TanStack Query hooks for dynamic data
-  const { data: metrics, isLoading: metricsLoading } = useQuery({
+  const { data: metrics } = useQuery({
     queryKey: ['dashboard-metrics'],
     queryFn: dashboardApi.getMetrics,
     initialData: {
@@ -86,16 +73,7 @@ const Dashboard = () => {
     },
   ]
 
-  const handleLogout = async () => {
-    try {
-      const res = await axiosInstance.post('/api/auth/logout')
-      clearUser()
-      toast('logout successful')
-      naviagate({ to: '/' })
-    } catch (error) {
-      console.log('logut error', error)
-    }
-  }
+
   return (
     <div className="flex h-screen p-2 bg-gray-50">
       {/* Sidebar */}
@@ -112,38 +90,8 @@ const Dashboard = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="lg:hidden"
-                onClick={toggleSidebar}
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
-              <h1 className="text-2xl font-semibold">Dashboard</h1>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <DropdownMenu>
-                <DropdownMenuTrigger>
-                  <Avatar>
-                    <AvatarImage src="/api/placeholder/32/32" />
-                    <AvatarFallback>{user?.name[0]}</AvatarFallback>
-                  </Avatar>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>{user?.name}</DropdownMenuItem>
-                  <Button onClick={handleLogout}>Logout</Button>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </header>
+        
+        <Header toggleSidebar={toggleSidebar} title="Dashboard" />
 
         {/* Dashboard Content */}
         <main className="flex-1 overflow-auto p-6">
