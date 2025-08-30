@@ -72,7 +72,7 @@ const Dashboard = () => {
       color: 'bg-purple-500',
     },
   ]
-
+console.log(metricCards)
 
   return (
     <div className="flex h-screen p-2 bg-gray-50">

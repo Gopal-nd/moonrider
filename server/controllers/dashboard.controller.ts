@@ -29,11 +29,13 @@ export const getDashboardMetrics = async (req: Request, res: Response) => {
       })
     ]);
 
+    console.log(orders, customers, products, activities)
     // Calculate current values
     const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
     const totalOrders = orders.length;
     const totalCustomers = customers.length;
     const totalProducts = products.length;
+    console.log(totalCustomers,totalProducts)
 
     // Calculate previous period values (last 7 days vs previous 7 days)
     const now = new Date();

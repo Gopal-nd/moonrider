@@ -16,11 +16,10 @@ import {
   X,
   Trash2,
   Eye,
-
 } from 'lucide-react'
 import { dashboardApi } from '@/lib/dashboardApi'
 import toast from 'react-hot-toast'
-import Header from '@/components/Header'
+
 
 const Notifications = () => {
   const navigate = useNavigate()
@@ -77,7 +76,17 @@ const Notifications = () => {
     },
   });
 
-
+  const markAllAsReadMutation = useMutation({
+    mutationFn: dashboardApi.markAllNotificationsAsRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notification-count'] });
+      toast.success('All notifications marked as read');
+    },
+    onError: () => {
+      toast.error('Failed to mark all notifications as read');
+    },
+  });
 
   const deleteNotificationMutation = useMutation({
     mutationFn: dashboardApi.deleteNotification,
@@ -142,8 +151,35 @@ const Notifications = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-     
-        <Header toggleSidebar={toggleSidebar} title="Notifications" />
+        <header className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                className="lg:hidden p-2 rounded-md hover:bg-gray-100"
+                onClick={toggleSidebar}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              <h1 className="text-2xl font-semibold">Notifications</h1>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                onClick={() => markAllAsReadMutation.mutate()}
+                disabled={markAllAsReadMutation.isPending}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Mark All as Read
+              </Button>
+              <Button onClick={() => setShowCreateForm(true)}>
+                <Bell className="h-4 w-4 mr-2" />
+                Create Notification
+              </Button>
+            </div>
+          </div>
+        </header>
 
 
         {/* Page Content */}
